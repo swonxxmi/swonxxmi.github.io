@@ -17,7 +17,7 @@
           <div class="exp-bar-bg">
             <div class="exp-bar" :style="{ width: getExpPercentage(action) + '%' }"></div>
           </div>
-          <span class="exp-text">{{ experience[action] }}/{{ getRequiredExp(action) }} ({{ getExpPercentage(action) }}%)</span>
+          <span class="exp-text">{{ experience[action] }}/{{ calculateXPForNextLevel(levels[action]) }} ({{ getExpPercentage(action) }}%)</span>
         </div>
       </div>
     </div>
@@ -25,6 +25,10 @@
 </template>
 
 <script>
+// 定义与 gameState.js 中相同的常量
+const LEVEL_UP_BASE_XP = 3;
+const LEVEL_UP_FACTOR = 1.4;
+
 export default {
   name: 'ActionTypes',
   props: {
@@ -48,7 +52,7 @@ export default {
   },
   methods: {
     getActionTitle(action) {
-      return `当前经验: ${this.experience[action]} / 下一级经验: ${this.getRequiredExp(action)}`;
+      return `当前经验: ${this.experience[action]} / 下一级经验: ${this.calculateXPForNextLevel(this.levels[action])}`;
     },
     switchAction(action) {
       this.activeAction = action;
@@ -57,13 +61,24 @@ export default {
     isActive(action) {
       return this.activeAction === action;
     },
-    getRequiredExp(action) {
-      return this.levels[action] ** 2;
+    calculateXPForNextLevel(level) {
+       // 确保 level 是数字且至少为 1
+       const numericLevel = Number(level);
+       if (isNaN(numericLevel)) return Infinity; // 或者返回一个很大的数
+       const effectiveLevel = Math.max(1, numericLevel);
+       // 使用 Math.ceil 或 Math.floor 取决于你希望难度如何
+       return Math.floor(LEVEL_UP_BASE_XP * Math.pow(LEVEL_UP_FACTOR, effectiveLevel - 1));
     },
     getExpPercentage(action) {
-      const required = this.getRequiredExp(action);
+      const currentLevel = this.levels[action];
+      const required = this.calculateXPForNextLevel(currentLevel); // 使用新方法
       const current = this.experience[action];
-      return Math.floor((current / required) * 100);
+      // 防止除以 0 或无效值
+      if (required <= 0) return 0;
+      // 确保百分比在 0-100 之间
+      const percentage = Math.min(100, Math.max(0, (current / required) * 100));
+      // 返回整数百分比用于显示
+      return Math.floor(percentage);
     }
   }
 }
@@ -159,9 +174,12 @@ export default {
   color: #555;
 }
 
+/* 移除这条规则，让激活状态下的经验条保持原有颜色 */
+/*
 .action-button.active .exp-bar {
   background-color: #fff;
 }
+*/
 
 .action-button.active .exp-text {
   color: #fff;

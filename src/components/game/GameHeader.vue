@@ -97,7 +97,8 @@ export default {
 .progress {
   height: 100%;
   background-color: #76c7c0;
-  transition: width 0.3s;
+  /* 移除过渡效果以避免闪烁 */
+  /* transition: width 0.3s; */
 }
 
 .progress-time {

@@ -6,127 +6,255 @@ import { reactive } from 'vue';
 
 const ACTIONS = GameConstants.ACTIONS;
 
+// 初始状态
+const initialState = () => ({
+  levels: {
+    [ACTIONS.COLLECT]: 1,
+    [ACTIONS.FORGE]: 1,
+    [ACTIONS.HUNT]: 1,
+    [ACTIONS.INTERACT]: 1,
+    [ACTIONS.EXPLORE]: 1,
+  },
+  experience: {
+    [ACTIONS.COLLECT]: 0,
+    [ACTIONS.FORGE]: 0,
+    [ACTIONS.HUNT]: 0,
+    [ACTIONS.INTERACT]: 0,
+    [ACTIONS.EXPLORE]: 0,
+  },
+  inventory: {
+    [GameConstants.ITEMS.GLASS_SHARD]: 0,
+  },
+  equipment: {
+    ...Object.fromEntries(GameConstants.EQUIPMENT_SLOTS.map(slot => [slot, null])),
+  },
+  animals: {
+    catworm: { cost: 10, production: 1, unlocked: false },
+    pigeon: { cost: 20, production: 2, unlocked: false },
+    chicken: { cost: 30, production: 3, unlocked: false },
+  },
+});
+
+const LEVEL_UP_BASE_XP = 3;
+const LEVEL_UP_FACTOR = 1.4;
+
 export default {
-  state: reactive({
-    // 技能等级
-    levels: {
-      [ACTIONS.COLLECT]: 11,
-      [ACTIONS.FORGE]: 1,
-      [ACTIONS.BUILD]: 1,
-      [ACTIONS.INTERACT]: 1,
-      [ACTIONS.EXPLORE]: 1,
-    },
-    
-    // 技能经验
-    experience: {
-      [ACTIONS.COLLECT]: 0,
-      [ACTIONS.FORGE]: 0,
-      [ACTIONS.BUILD]: 0,
-      [ACTIONS.INTERACT]: 0,
-      [ACTIONS.EXPLORE]: 0,
-    },
-    
-    // 物品库存
-    inventory: {
-      [GameConstants.ITEMS.GLASS_SHARD]: 0,
-    },
-    
-    // 装备栏
-    equipment: ['无', '无', '无', '无', '无', '无'],
-    
-    // 动物
-    animals: {
-      catworm: { cost: 10, production: 1, unlocked: false },
-      pigeon: { cost: 20, production: 2, unlocked: false },
-      chicken: { cost: 30, production: 3, unlocked: false },
-    },
-  }),
+  state: initialState(),
   
   /**
-   * 增加物品到库存
+   * 重置状态为初始状态
+   */
+  resetState() {
+    this.state = initialState();
+    console.log("Game state reset to initial values.");
+  },
+  
+  /**
+   * 确保所有在 GameConstants.ACTIONS 中定义的技能都在 state 中初始化
+   */
+  initializeNewSkills() {
+    const actions = Object.values(ACTIONS);
+    let updated = false;
+    actions.forEach(action => {
+        if (!(action in this.state.levels)) {
+            this.state.levels[action] = 1;
+            updated = true;
+        }
+        if (!(action in this.state.experience)) {
+            this.state.experience[action] = 0;
+            updated = true;
+        }
+    });
+    if (updated) {
+        console.log("Initialized new skills in gameState.");
+    }
+  },
+  
+  /**
+   * 向物品栏添加物品
    * @param {String} itemName - 物品名称
    * @param {Number} amount - 数量
    */
   addItemToInventory(itemName, amount) {
-    if (!this.state.inventory[itemName]) {
-      this.state.inventory[itemName] = 0;
+    if (!itemName || amount <= 0) return;
+    if (this.state.inventory[itemName]) {
+      this.state.inventory[itemName] += amount;
+    } else {
+      this.state.inventory[itemName] = amount;
     }
-    this.state.inventory[itemName] += amount;
+    console.log(`Added ${amount} ${itemName} to inventory. New total: ${this.state.inventory[itemName]}`);
   },
   
   /**
-   * 从库存中移除物品
+   * 从物品栏移除物品
    * @param {String} itemName - 物品名称
    * @param {Number} amount - 数量
    * @returns {Boolean} - 是否成功移除
    */
   removeItemFromInventory(itemName, amount) {
-    if (!this.state.inventory[itemName] || this.state.inventory[itemName] < amount) {
+    if (!itemName || amount <= 0 || !this.state.inventory[itemName]) return false;
+    if (this.state.inventory[itemName] >= amount) {
+      this.state.inventory[itemName] -= amount;
+      if (this.state.inventory[itemName] === 0) {
+        delete this.state.inventory[itemName];
+      }
+      console.log(`Removed ${amount} ${itemName} from inventory. Remaining: ${this.state.inventory[itemName] || 0}`);
+      return true;
+    } else {
+      console.warn(`Failed to remove ${amount} ${itemName}, only have ${this.state.inventory[itemName]}`);
       return false;
     }
-    this.state.inventory[itemName] -= amount;
-    return true;
   },
   
   /**
-   * 增加技能经验并升级
-   * @param {String} actionType - 技能类型
-   * @param {Number} expAmount - 经验量
+   * 获取物品数量
+   * @param {String} itemName - 物品名称
+   * @returns {Number} - 物品数量
    */
-  gainExperience(actionType, expAmount = 1) {
-    if (!(actionType in this.state.experience)) return;
-    
-    // 使用Vue 3的响应式方式直接修改
-    this.state.experience[actionType] += expAmount;
-    
-    const requiredExp = this.state.levels[actionType] ** 2;
-    
-    if (this.state.experience[actionType] >= requiredExp) {
-      // 直接修改响应式对象
-      this.state.levels[actionType] += 1;
-      this.state.experience[actionType] -= requiredExp;
+  getItemCount(itemName) {
+    return this.state.inventory[itemName] || 0;
+  },
+  
+  /**
+   * 获得经验值并处理升级
+   * @param {String} actionType - 技能类型
+   * @param {Number} amount - 经验量
+   */
+  gainExperience(actionType, amount) {
+    // 添加更严格的检查
+    if (!actionType || typeof actionType !== 'string' || amount <= 0) {
+      console.warn(`[gainExperience] Invalid parameters: actionType=${actionType}, amount=${amount}`);
+      return;
+    }
+    // 确保经验和等级状态已初始化 (防御性编程)
+    if (typeof this.state.experience[actionType] === 'undefined') {
+      console.warn(`[gainExperience] Experience for ${actionType} was undefined. Initializing to 0.`);
+      this.state.experience[actionType] = 0;
+    }
+    if (typeof this.state.levels[actionType] === 'undefined') {
+      console.warn(`[gainExperience] Level for ${actionType} was undefined. Initializing to 1.`);
+      this.state.levels[actionType] = 1;
+    }
+
+    this.state.experience[actionType] += amount;
+    console.log(`[gainExperience] Gained ${amount} XP for ${actionType}. Total XP: ${this.state.experience[actionType]}`);
+
+    this.checkLevelUp(actionType);
+  },
+  
+  /**
+   * 计算升级所需的经验值
+   * @param {Number} level - 当前等级
+   * @returns {Number} - 升级所需的经验值
+   */
+  calculateXPForNextLevel(level) {
+    // Ensure level is at least 1 for calculation
+    const effectiveLevel = Math.max(1, level);
+    return Math.floor(LEVEL_UP_BASE_XP * Math.pow(LEVEL_UP_FACTOR, effectiveLevel - 1));
+  },
+  
+  /**
+   * 检查并处理升级
+   * @param {String} actionType - 技能类型
+   */
+  checkLevelUp(actionType) {
+    // 确保技能和状态存在
+    if (!(actionType in this.state.levels) || !(actionType in this.state.experience)) {
+        console.error(`[checkLevelUp] Missing level or experience state for ${actionType}`);
+        return;
+    }
+
+    const currentLevel = this.state.levels[actionType];
+    const currentXP = this.state.experience[actionType];
+    const xpForNextLevel = this.calculateXPForNextLevel(currentLevel);
+
+    // 添加日志，显示检查时的状态
+    console.log(`[checkLevelUp] Checking ${actionType}: Level ${currentLevel}, XP ${currentXP} / ${xpForNextLevel}`);
+
+    if (currentXP >= xpForNextLevel) {
+      this.state.levels[actionType]++;
+      // 保留溢出经验值
+      this.state.experience[actionType] -= xpForNextLevel;
+      // 确保经验不会变成负数 (虽然理论上不应该)
+      if(this.state.experience[actionType] < 0) {
+          console.warn(`[checkLevelUp] Negative XP detected after level up for ${actionType}. Resetting to 0.`);
+          this.state.experience[actionType] = 0;
+      }
+
+      // 使用 %c 添加醒目的升级日志
+      console.log(`%c[checkLevelUp] ${actionType} leveled up to level ${this.state.levels[actionType]}! Remaining XP: ${this.state.experience[actionType]}`, 'color: green; font-weight: bold;');
+      
+      // 触发 Vue 更新 (如果需要，虽然直接修改 state 应该能触发)
+      // import { nextTick } from 'vue'; nextTick(() => { /* force update? */ });
+
+      // 递归检查，防止一次性升多级漏掉
+      this.checkLevelUp(actionType);
     }
   },
   
   /**
    * 装备物品
    * @param {String} itemName - 物品名称
-   * @param {Number} slot - 装备槽位
    * @returns {Boolean} - 是否成功装备
    */
-  equipItem(itemName, slot = 0) {
-    if (slot < 0 || slot >= this.state.equipment.length) return false;
-    
-    // 检查是否有该物品
-    if (!this.state.inventory[itemName] || this.state.inventory[itemName] <= 0) {
+  equipItem(itemName) {
+    const targetSlot = '工具';
+
+    if (!this.state.equipment.hasOwnProperty(targetSlot)) {
+      console.warn(`Cannot equip ${itemName}, slot ${targetSlot} does not exist.`);
       return false;
     }
-    
-    // 只有第一个槽位可以装备
-    if (slot !== 0) return false;
-    
-    // 装备物品，使用Vue 3的响应式方式
-    this.state.equipment[slot] = itemName;
-    this.removeItemFromInventory(itemName, 1);
-    return true;
-  },
 
+    if (this.getItemCount(itemName) <= 0) {
+        console.warn(`Cannot equip ${itemName}, not found in inventory.`);
+        return false;
+    }
+
+    const currentItem = this.state.equipment[targetSlot];
+    if (currentItem) {
+        this.unequipItem(targetSlot);
+    }
+
+    if (this.removeItemFromInventory(itemName, 1)) {
+        this.state.equipment[targetSlot] = itemName;
+        console.log(`Equipped ${itemName} to ${targetSlot}.`);
+        return true;
+    } else {
+        console.error(`Failed to remove ${itemName} from inventory during equip.`);
+        return false;
+    }
+  },
+  
   /**
-   * 检查物品是否可装备
-   * @param {String} itemName - 物品名称
-   * @returns {Boolean} - 物品是否可装备
+   * 卸下指定槽位的物品
+   * @param {String} slotName - 槽位名称
+   * @returns {Boolean} - 是否成功卸下
    */
-  isEquippable(itemName) {
-    // 目前只有玻璃锤可以装备
-    return itemName === '玻璃锤';
-  },
+  unequipItem(slotName) {
+    if (!this.state.equipment.hasOwnProperty(slotName)) return false;
 
+    const equippedItem = this.state.equipment[slotName];
+    if (equippedItem) {
+      this.addItemToInventory(equippedItem, 1);
+      this.state.equipment[slotName] = null;
+      console.log(`Unequipped ${equippedItem} from ${slotName}.`);
+      return true;
+    }
+    return false;
+  },
+  
   /**
-   * 检查装备是否已装备
+   * 检查物品是否已装备
    * @param {String} itemName - 物品名称
    * @returns {Boolean} - 物品是否已装备
    */
   isEquipped(itemName) {
-    return this.state.equipment.includes(itemName);
+    return Object.values(this.state.equipment).includes(itemName);
+  },
+
+  // <<< 新增/修改：判断物品是否可装备 >>>
+  isEquippable(itemName) {
+      // 检查 GameConstants 是否定义了可装备列表，并且 itemName 在列表中
+      return GameConstants.EQUIPPABLE_ITEMS && GameConstants.EQUIPPABLE_ITEMS.includes(itemName);
   }
 }; 

@@ -92,35 +92,103 @@ export default {
   border: 1px solid #dcdcdc;
   border-radius: 5px;
   padding: 15px;
-  height: calc(100vh - 160px);
+  height: calc(100vh - 180px);
   overflow-y: auto;
   box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+/* 移动设备适配 */
+@media screen and (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    border-radius: 15px 15px 0 0;
+    padding: 10px;
+    z-index: 100;
+  }
+
+  .section-title {
+    font-size: 1em;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+
+  .equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .equip-slot {
+    padding: 4px 6px;
+    font-size: 0.8em;
+  }
+
+  .inventory-items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .inventory-item {
+    padding: 6px 8px;
+    font-size: 0.9em;
+  }
+
+  .item-quantity {
+    font-size: 0.8em;
+  }
+
+  .equip-hint {
+    font-size: 0.7em;
+  }
+}
+
+/* 超小屏幕设备适配 */
+@media screen and (max-width: 320px) {
+  .sidebar {
+    height: 180px;
+  }
+
+  .equipment-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .inventory-items {
+    grid-template-columns: 1fr;
+  }
 }
 
 .section-title {
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   font-size: 1.1em;
   color: #333;
   text-align: center;
   border-bottom: 1px solid #ccc;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .equipment-section,
 .inventory-section {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .equipment-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 6px;
 }
 
 .equip-slot {
   border: 1px solid #ddd;
-  padding: 8px 10px;
+  padding: 6px 8px;
   text-align: left;
   background-color: white;
   border-radius: 4px;

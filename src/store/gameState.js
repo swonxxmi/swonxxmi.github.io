@@ -198,30 +198,39 @@ export default {
    * @returns {Boolean} - 是否成功装备
    */
   equipItem(itemName) {
-    const targetSlot = '工具';
+    let targetSlot = null;
 
-    if (!this.state.equipment.hasOwnProperty(targetSlot)) {
-      console.warn(`Cannot equip ${itemName}, slot ${targetSlot} does not exist.`);
+    // 根据物品确定装备槽位
+    if (itemName === GameConstants.ITEMS.PIGEON_GUN) {
+      targetSlot = '武器';
+    } else if (itemName === GameConstants.ITEMS.GLASS_HAMMER) {
+      targetSlot = '工具';
+    } else if (itemName === GameConstants.ITEMS.FEATHER_HELMET) {
+      targetSlot = '头部';
+    }
+
+    if (!targetSlot || !this.state.equipment.hasOwnProperty(targetSlot)) {
+      console.warn(`Cannot equip ${itemName}, invalid slot ${targetSlot}.`);
       return false;
     }
 
     if (this.getItemCount(itemName) <= 0) {
-        console.warn(`Cannot equip ${itemName}, not found in inventory.`);
-        return false;
+      console.warn(`Cannot equip ${itemName}, not found in inventory.`);
+      return false;
     }
 
     const currentItem = this.state.equipment[targetSlot];
     if (currentItem) {
-        this.unequipItem(targetSlot);
+      this.unequipItem(targetSlot);
     }
 
     if (this.removeItemFromInventory(itemName, 1)) {
-        this.state.equipment[targetSlot] = itemName;
-        console.log(`Equipped ${itemName} to ${targetSlot}.`);
-        return true;
+      this.state.equipment[targetSlot] = itemName;
+      console.log(`Equipped ${itemName} to ${targetSlot}.`);
+      return true;
     } else {
-        console.error(`Failed to remove ${itemName} from inventory during equip.`);
-        return false;
+      console.error(`Failed to remove ${itemName} from inventory during equip.`);
+      return false;
     }
   },
   

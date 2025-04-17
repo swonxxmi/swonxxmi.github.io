@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "a": "vite build",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "b": "gh-pages -d dist"
   },
   "dependencies": {
     "vue": "^3.5.13",

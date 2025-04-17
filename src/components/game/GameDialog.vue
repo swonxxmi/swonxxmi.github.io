@@ -3,15 +3,18 @@
     <div class="dialog" @click.stop>
       <div class="dialog-content">
         <h3>{{ description.name || '详情' }}</h3>
+        <p v-if="description.levelRequirement" class="level-requirement">{{ description.levelRequirement }}</p>
         <p v-if="description.description">描述：{{ description.description }}</p>
         <p v-if="description.time">时间：{{ description.time }}</p>
-        <p v-if="description.yieldInfo">获得：{{ description.yieldInfo }}</p>
+        <p v-if="description.yield">{{ description.yield }}</p>
         <p v-if="description.recipe" class="recipe">{{ description.recipe }}</p>
         <p v-if="description.effect" class="effect">{{ description.effect }}</p>
+        <p v-if="description.buffDescription" class="buff-description">{{ description.buffDescription }}</p>
+        <p v-if="description.requires" class="requires">{{ description.requires }}</p>
         <p v-if="description.special" class="special-effect">{{ description.special }}</p>
         <p v-if="description.note" class="note">{{ description.note }}</p>
       </div>
-      <button v-if="item && item.name" class="start-button" @click="startAction">开始 {{ item.name }}</button>
+      <button v-if="item && item.name" class="start-button" @click="startAction">开始</button>
     </div>
   </div>
 </template>
@@ -94,6 +97,11 @@ export default {
   line-height: 1.5;
 }
 
+.level-requirement {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
 .dialog .start-button {
   padding: 10px 20px;
   margin-top: 10px;
@@ -112,9 +120,19 @@ export default {
 }
 
 .recipe,
-.effect {
+.effect,
+.craft-time {
   color: #3a7ca5;
   font-style: italic;
+}
+
+.buff-description {
+  color: #8e44ad;
+  font-style: italic;
+}
+
+.requires {
+  color: #d35400;
 }
 
 .special-effect {

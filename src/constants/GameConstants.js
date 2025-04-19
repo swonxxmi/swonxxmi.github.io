@@ -9,6 +9,8 @@ import SheepImage from '@/assets/Sheep.png';
 import BakaImage from '@/assets/baka.jpg';
 import PigeonGunImage from '@/assets/PigeonGun.png';
 import FeatherHelmetImage from '@/assets/Feather_Helmet.png';
+import DewImage from '@/assets/water.jpg';
+import SpiderSilkImage from '@/assets/spiders.png';
 
 export default {
   // 行为类型
@@ -25,9 +27,14 @@ export default {
     GLASS_BALL: '敲打玻璃球',
     SCARE_PIGEON: '恐吓鸽子',
     SHAKE_GINKGO: '摇晃银杏',
+    COLLECT_DEW: '收集露珠',
+    COLLECT_SPIDER_SILK: '收集蛛丝',
     GLASS_SHARD: '玻璃碎片',
     FEATHER: '羽毛',
     GINKGO_LEAF: '银杏叶',
+    DEW: '露珠',
+    ESSENCE_DEW: '精华露珠',
+    SPIDER_SILK: '蛛丝',
     SHEEP: '狩猎绵羊',
     RAW_MUTTON: '生羊肉',
     GLASS_HAMMER: '玻璃锤',
@@ -43,7 +50,6 @@ export default {
     CATCH_BUTTERFLY: '捕捉蝴蝶',
     BUTTERFLY_WING: '蝴蝶之翼',
     BUTTERFLY_CLOAK: '蝴蝶披风',
-    RARE_HERB: '稀有草药',
     SING_A_SONG: '把麦开开',
   },
   
@@ -55,6 +61,8 @@ export default {
     INTERACT: 3,
     SCARE_PIGEON: 3,
     SHAKE_GINKGO: 4,
+    COLLECT_DEW: 7,
+    COLLECT_SPIDER_SILK: 4,
     EXPLORE: 6,
     FORGE_PIGEON_GUN: 12,    // 制作羽毛枪需要更长时间
     FORGE_FEATHER_HELMET: 8,  // 制作羽毛帽的时间
@@ -67,7 +75,9 @@ export default {
   // 新增：动作等级需求
   LEVEL_REQUIREMENTS: {
     DEFAULT: 1, // 默认需求等级
-    [Symbol.for('玻璃锤')]: 1,
+    [Symbol.for('收集露珠')]: 1,
+    [Symbol.for('收集蛛丝')]: 3,
+    [Symbol.for('摇晃银杏')]: 2,
     [Symbol.for('羽毛帽')]: 2,
     [Symbol.for('羽毛枪')]: 3,
   },
@@ -105,6 +115,8 @@ export default {
     '敲打玻璃球': AlumImage,
     '恐吓鸽子': PigeonImage,
     '摇晃银杏': GinkgoImage,
+    '收集露珠': DewImage,
+    '收集蛛丝': SpiderSilkImage,
     '狩猎绵羊': SheepImage,
     '玻璃锤': GlassSwordImage,
     '使用冰冻装置': BakaImage,
@@ -133,5 +145,11 @@ export default {
 
   getItemImage(itemName) {
     return this.ITEM_IMAGES[itemName] || `${itemName.toLowerCase().replace(/\s+/g, '_')}.png`;
-  }
+  },
+
+  // 露珠采集相关常量
+  DEW_COLLECTION: {
+    HOURLY_LIMIT: 8, // 每小时最大采集次数 (旧的，现在用 MAX_DEW_COLLECTIONS_PER_HOUR)
+    ESSENCE_CHANCE: 0.1, // 采集到精华露珠的概率 (10%)
+  },
 }; 

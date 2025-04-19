@@ -26,7 +26,7 @@
 
 <script>
 // 定义与 gameState.js 中相同的常量
-const LEVEL_UP_BASE_XP = 3;
+const LEVEL_UP_BASE_XP = 4;
 const LEVEL_UP_FACTOR = 1.4;
 
 export default {

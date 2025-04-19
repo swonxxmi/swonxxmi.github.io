@@ -33,10 +33,13 @@ const initialState = () => ({
     pigeon: { cost: 20, production: 2, unlocked: false },
     chicken: { cost: 30, production: 3, unlocked: false },
   },
+  buffs: {},
+  dewCollectionTimestamps: [], // 新增：存储露珠采集时间戳
 });
 
-const LEVEL_UP_BASE_XP = 3;
+const LEVEL_UP_BASE_XP = 4;
 const LEVEL_UP_FACTOR = 1.4;
+const MAX_DEW_COLLECTIONS_PER_HOUR = 8; // CORRECT constant is here, outside export
 
 export default {
   state: initialState(),
@@ -46,6 +49,8 @@ export default {
    */
   resetState() {
     this.state = initialState();
+    // 确保重置时也清空时间戳
+    this.state.dewCollectionTimestamps = []; 
     console.log("Game state reset to initial values.");
   },
   
@@ -68,6 +73,8 @@ export default {
     if (updated) {
         console.log("Initialized new skills in gameState.");
     }
+    // 初始化或加载后，清理过期的露珠时间戳
+    this.cleanupDewTimestamps(); 
   },
   
   /**
@@ -265,5 +272,112 @@ export default {
   isEquippable(itemName) {
       // 检查 GameConstants 是否定义了可装备列表，并且 itemName 在列表中
       return GameConstants.EQUIPPABLE_ITEMS && GameConstants.EQUIPPABLE_ITEMS.includes(itemName);
-  }
+  },
+
+  addBuff(buffName, buffEffect) {
+    if (!this.state.buffs[buffName]) {
+      this.state.buffs[buffName] = {
+        effect: buffEffect,
+        permanent: true  // 设置为永久buff
+      };
+      console.log(`[GameState] Added buff: ${buffName} with effect: ${buffEffect}`);
+    }
+  },
+
+  // --- 新增：露珠采集限制相关方法 ---
+  
+  /**
+   * 清理过期的露珠采集时间戳（不在当前小时内的）
+   */
+  cleanupDewTimestamps() {
+    const now = new Date();
+    const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), 0, 0, 0);
+    const currentHourStartTime = currentHourStart.getTime();
+    
+    // 确保 state.dewCollectionTimestamps 是数组
+    if (!Array.isArray(this.state.dewCollectionTimestamps)) {
+        console.warn("[cleanupDewTimestamps] state.dewCollectionTimestamps was not an array, resetting.");
+        this.state.dewCollectionTimestamps = [];
+    }
+    
+    const initialTimestamps = [...this.state.dewCollectionTimestamps]; // Log initial state
+    const initialLength = initialTimestamps.length;
+
+    this.state.dewCollectionTimestamps = this.state.dewCollectionTimestamps.filter(timestamp => {
+      const isValid = typeof timestamp === 'number' && timestamp >= currentHourStartTime;
+      // Log timestamps being filtered out
+      // if (!isValid) { 
+      //   console.log(`[cleanupDewTimestamps] Filtering out timestamp: ${new Date(timestamp).toLocaleString()} (Before ${currentHourStart.toLocaleString()})`);
+      // }
+      return isValid;
+    });
+
+    // Log if changes were made
+    if (initialLength !== this.state.dewCollectionTimestamps.length) {
+        console.log(`[cleanupDewTimestamps] Before: ${initialLength} timestamps. After: ${this.state.dewCollectionTimestamps.length} timestamps.`);
+        // console.log("[cleanupDewTimestamps] Current timestamps:", this.state.dewCollectionTimestamps.map(ts => new Date(ts).toLocaleTimeString()));
+    }
+  },
+
+  /**
+   * 检查当前是否可以采集露珠
+   * @returns {Boolean}
+   */
+  canCollectDew() {
+    this.cleanupDewTimestamps(); // 确保检查前数据是最新的
+    const currentCount = this.state.dewCollectionTimestamps.length;
+    const limit = MAX_DEW_COLLECTIONS_PER_HOUR;
+    const canCollect = currentCount < limit;
+    console.log(`[canCollectDew] Check: Count=${currentCount}, Limit=${limit}, CanCollect=${canCollect}`);
+    return canCollect;
+  },
+
+  /**
+   * 记录一次露珠采集
+   */
+  recordDewCollection() {
+    const canCollect = this.canCollectDew(); // Call canCollectDew first (it includes cleanup)
+    console.log(`[recordDewCollection] Attempting to record. canCollectDew returned: ${canCollect}`);
+    if (canCollect) {
+        const beforeTimestamps = [...this.state.dewCollectionTimestamps];
+        this.state.dewCollectionTimestamps.push(Date.now());
+        console.log(`[recordDewCollection] Success. Count before: ${beforeTimestamps.length}, Count after: ${this.state.dewCollectionTimestamps.length}/${MAX_DEW_COLLECTIONS_PER_HOUR}`);
+        // console.log("[recordDewCollection] Current timestamps:", this.state.dewCollectionTimestamps.map(ts => new Date(ts).toLocaleTimeString()));
+    } else {
+      console.warn(`[recordDewCollection] Failed. Limit reached. Current count: ${this.state.dewCollectionTimestamps.length}`);
+    }
+  },
+
+  /**
+   * 获取当前小时内已采集的次数
+   * @returns {Number}
+   */
+  getDewCollectionsThisHour() {
+    this.cleanupDewTimestamps(); // 获取前清理确保准确
+    return this.state.dewCollectionTimestamps.length;
+  },
+
+  /**
+   * 获取每小时最大采集次数
+   * @returns {Number}
+   */
+  getMaxDewCollectionsPerHour() {
+    // 直接从常量返回
+    return MAX_DEW_COLLECTIONS_PER_HOUR; // Use constant directly
+  },
+
+  /**
+   * 获取距离下一个整点（露珠采集次数刷新）还有多少分钟
+   * @returns {Number} 分钟数
+   */
+  getMinutesUntilNextDewCollectionAllowed() {
+    // 不需要 this
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(now.getHours() + 1, 0, 0, 0); // 设置为下一个小时的 0 分 0 秒
+    const diffMs = nextHour.getTime() - now.getTime();
+    return Math.ceil(diffMs / (1000 * 60)); // 向上取整分钟数
+  },
+
+  // --- 结束：露珠采集限制相关方法 ---
 }; 

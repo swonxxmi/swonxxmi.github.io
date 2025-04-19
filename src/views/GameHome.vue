@@ -49,6 +49,15 @@
     <ExploreArea 
       :handle-explore-action="handleExploreAction"
     />
+
+    <!-- 添加回 GameDialog 组件 -->
+    <GameDialog 
+      :visible="dialogVisible"
+      :description="dialogDescription"
+      :item="dialogItem"
+      @close-dialog="closeDialog"
+      @start-action="startAction"
+    />
     
     <!-- 悬浮提示 -->
     <div v-if="showTooltip" class="tooltip" :style="{top: tooltipY + 'px', left: tooltipX + 'px'}">
@@ -738,8 +747,10 @@ export default {
       }
     },
     openDialog(item) {
+      console.log('[GameHome] openDialog called with item:', item);
       this.dialogItem = item;
       this.dialogVisible = true;
+      console.log(`[GameHome] dialogVisible set to: ${this.dialogVisible}`);
       this.dialogDescription = this.getItemDescription(item);
 
       if (this.isFood(item.name)) {

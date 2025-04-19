@@ -54,6 +54,8 @@ export default {
   background-color: #f0f0f0;
   border-bottom: 2px solid #76c7c0;
   height: 80px;
+  box-sizing: border-box;
+  flex-wrap: wrap; /* 允许在小屏幕上换行 */
 }
 
 .game-title {
@@ -70,12 +72,18 @@ export default {
   align-items: flex-start;
   margin-left: 20px;
   margin-bottom: 5px;
+  flex-grow: 1; /* 允许占用剩余空间 */
+  max-width: calc(100% - 120px); /* 确保不会超出标题之外太多 */
 }
 
 .action-box p {
   margin: 5px 0;
   font-weight: bold;
   color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .progress-container {
@@ -83,6 +91,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%; /* 让容器占满父元素宽度 */
 }
 
 .progress-bar {
@@ -92,6 +101,8 @@ export default {
   border-radius: 10px;
   overflow: hidden;
   position: relative;
+  flex-grow: 1; /* 让进度条占据剩余空间 */
+  max-width: 100%; /* 防止溢出 */
 }
 
 .progress {
@@ -125,9 +136,64 @@ export default {
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  flex-shrink: 0; /* 防止按钮被压缩 */
 }
 
 .stop-button:hover {
   background-color: #ff3333;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px), screen and (orientation: portrait) {
+  .game-header {
+    padding: 8px 12px;
+    height: auto; /* 自适应高度 */
+    min-height: 70px;
+    justify-content: center;
+    flex-direction: column;
+  }
+  
+  .game-title {
+    font-size: 20px;
+    margin-right: 0;
+    margin-bottom: 5px;
+    text-align: center;
+  }
+  
+  .action-box {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
+    align-items: center;
+  }
+  
+  .progress-bar {
+    width: 100%; /* 移动端下最大化进度条宽度 */
+  }
+
+  .progress-container {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* 超小屏幕适配 */
+@media screen and (max-width: 320px) {
+  .game-title {
+    font-size: 18px;
+  }
+  
+  .action-box p {
+    font-size: 14px;
+  }
+  
+  .progress-time {
+    font-size: 10px;
+  }
+  
+  .stop-button {
+    font-size: 12px;
+    padding: 0 3px;
+  }
 }
 </style> 

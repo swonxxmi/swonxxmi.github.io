@@ -10,7 +10,7 @@
       </div>
     </div>
     <div class="inventory-section">
-      <h3 class="section-title">物品栏</h3>
+      <h3 class="section-title inventory-title">物品栏</h3>
       <div class="inventory-items">
         <div 
           v-for="[item, quantity] in filteredInventory" 
@@ -96,72 +96,118 @@ export default {
   overflow-y: auto;
   box-shadow: -2px 0 5px rgba(0,0,0,0.05);
   transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+/* 装备区域与物品区域之间的分隔线 */
+.equipment-section {
+  position: relative;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px dashed #ccc;
 }
 
 /* 移动设备适配 */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 768px), screen and (orientation: portrait) {
   .sidebar {
-    position: fixed;
+    position: static; /* 移动设备上不使用固定定位 */
     top: auto;
-    bottom: 0;
-    right: 0;
-    left: 0;
+    bottom: auto;
+    right: auto;
+    left: auto;
     width: 100%;
-    height: 200px;
-    border-radius: 15px 15px 0 0;
+    height: auto; /* 自动高度 */
+    max-height: calc(100vh - 60px); /* 限制最大高度 */
+    border-radius: 5px;
     padding: 10px;
-    z-index: 100;
+    z-index: 10;
+    box-shadow: none;
+    margin-bottom: 0;
   }
 
+  /* 加强移动端下装备区域与物品区域的分隔 */
+  .equipment-section {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+
+  /* 隐藏物品栏标题（在移动端侧边栏中） */
+  .inventory-title {
+    display: none;
+  }
+
+  /* 为移动设备优化装备栏布局 */
   .section-title {
-    font-size: 1em;
+    font-size: 0.9em;
     margin-bottom: 8px;
     padding-bottom: 4px;
+    border-bottom-width: 1px;
   }
 
   .equipment-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 移动设备上两列显示 */
     gap: 4px;
+    width: 100%;
   }
 
   .equip-slot {
     padding: 4px 6px;
     font-size: 0.8em;
+    display: flex;
+    flex-direction: column; /* 在移动设备上垂直排列 */
+    align-items: flex-start;
+  }
+
+  .slot-name {
+    margin-right: 0;
+    margin-bottom: 2px;
   }
 
   .inventory-items {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
+    width: 100%;
   }
 
   .inventory-item {
     padding: 6px 8px;
     font-size: 0.9em;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .item-quantity {
     font-size: 0.8em;
+    margin-top: 2px;
+    margin-right: 0;
   }
 
   .equip-hint {
     font-size: 0.7em;
+    margin-top: 2px;
   }
 }
 
 /* 超小屏幕设备适配 */
 @media screen and (max-width: 320px) {
   .sidebar {
-    height: 180px;
+    padding: 8px;
   }
 
   .equipment-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 超小屏也保持两列 */
   }
 
   .inventory-items {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* 超小屏单列显示 */
+  }
+  
+  .equip-slot, .inventory-item {
+    font-size: 0.75em;
+    padding: 3px 5px;
   }
 }
 
@@ -177,6 +223,10 @@ export default {
 
 .equipment-section,
 .inventory-section {
+  width: 100%;
+}
+
+.inventory-section {
   margin-bottom: 15px;
 }
 
@@ -184,6 +234,7 @@ export default {
   display: grid;
   grid-template-columns: 1fr;
   gap: 6px;
+  width: 100%;
 }
 
 .equip-slot {
@@ -196,22 +247,25 @@ export default {
   justify-content: space-between;
   align-items: center;
   font-size: 0.9em;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .slot-name {
-    color: #666;
-    margin-right: 5px;
+  color: #666;
+  margin-right: 5px;
 }
 
 .equipped-item {
-    font-weight: bold;
-    color: #333;
+  font-weight: bold;
+  color: #333;
 }
 
 .inventory-items {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
 }
 
 .inventory-item {
@@ -224,6 +278,8 @@ export default {
   align-items: center;
   position: relative;
   transition: background-color 0.2s, border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .item-name {
@@ -248,16 +304,15 @@ export default {
   border-left: 3px solid #007bff;
 }
 
-.inventory-item.equippable:hover {
+.inventory-item.equipped {
   background-color: #e7f3ff;
 }
 
-.inventory-item.equipped {
-  border-left: 3px solid #28a745;
-  background-color: #eaf7ea;
+.inventory-item:hover {
+  background-color: #f5f5f5;
 }
 
-.inventory-item.equipped .equip-hint {
-  color: #28a745;
+.inventory-item.equippable:hover {
+  background-color: #ebf5ff;
 }
 </style> 

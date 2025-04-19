@@ -95,6 +95,7 @@ export default {
   border-right: 1px solid #76c7c0;
   padding-bottom: 20px;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .action-buttons {
@@ -119,6 +120,7 @@ export default {
   align-items: center;
   min-height: 110px;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .action-button:hover {
@@ -183,5 +185,65 @@ export default {
 
 .action-button.active .exp-text {
   color: #fff;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px), screen and (orientation: portrait) {
+  .action-types {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #76c7c0;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .action-buttons {
+    padding: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .action-button {
+    margin: 0;
+    padding: 8px;
+    min-height: 90px;
+  }
+  
+  .action-name {
+    font-size: 16px;
+  }
+  
+  .action-level {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+  
+  .exp-text {
+    font-size: 10px;
+  }
+  
+  .exp-bar-bg {
+    height: 8px;
+  }
+}
+
+/* 超小屏幕适配 */
+@media screen and (max-width: 320px) {
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-button {
+    min-height: 80px;
+    padding: 6px;
+  }
+  
+  .action-name {
+    font-size: 14px;
+  }
 }
 </style> 

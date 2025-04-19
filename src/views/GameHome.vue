@@ -76,8 +76,7 @@
         </div>
 
         <!-- 条件渲染视图 -->
-        <div v-if="mobileSidebarView === 'actions'">
-          <h3>操作类型</h3>
+        <div v-if="mobileSidebarView === 'actions'" class="mobile-view-content">
           <ActionTypes
             :levels="this.gameState.state.levels"
             :experience="this.gameState.state.experience"
@@ -86,8 +85,7 @@
           />
         </div>
 
-        <div v-if="mobileSidebarView === 'inventory'">
-          <h3>状态与物品</h3>
+        <div v-if="mobileSidebarView === 'inventory'" class="mobile-view-content">
           <Sidebar
             :equipment="this.gameState.state.equipment"
             :inventory="this.gameState.state.inventory"
@@ -1176,7 +1174,8 @@ export default {
     grid-template-areas:
       "header"
       "item-list"; /* 主内容区域 */
-    padding: 10px; /* 调整内边距 */
+    padding: 5px; /* 减少整体内边距 */
+    gap: 10px; /* 减少网格间距 */
   }
 
   /* 隐藏桌面端元素 */
@@ -1208,6 +1207,7 @@ export default {
     top: 0;
     left: 0;
     width: 280px; /* 侧边栏宽度 */
+    max-width: 85vw; /* 最大宽度，防止超大屏手机过宽 */
     height: 100%;
     background-color: #f8f9fa; /* 浅灰色背景 */
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
@@ -1215,6 +1215,7 @@ export default {
     transition: transform 0.3s ease;
     z-index: 1000;
     overflow-y: auto; /* 内容过多时可滚动 */
+    overflow-x: hidden; /* 防止内部元素溢出导致横向滚动 */
   }
 
   .mobile-sidebar.open {
@@ -1222,8 +1223,14 @@ export default {
   }
 
   .sidebar-content {
-    padding: 20px;
+    padding: 10px; /* 进一步减少内边距 */
     padding-top: 50px; /* 为关闭按钮留出空间 */
+  }
+  
+  /* 移动端视图内容容器 */
+  .mobile-view-content {
+    width: 100%;
+    overflow-x: hidden;
   }
 
   .close-sidebar-btn {
@@ -1237,32 +1244,21 @@ export default {
     color: #6c757d;
   }
   
-  .sidebar-content h3 {
-    margin-top: 15px;
+  .sidebar-content h3 { /* 操作类型标题 */
     margin-bottom: 10px;
     color: #495057;
     font-size: 16px;
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 5px;
-  }
-  
-  .sidebar-content hr { /* 这个 hr 现在不用了，但可以保留样式以备将来使用 */
-      border: 0;
-      height: 1px;
-      background-color: #dee2e6;
-      margin: 20px 0;
+    padding-bottom: 5px; /* 保留下方一点空间 */
   }
 
   .mobile-sidebar-view-toggle {
     display: flex;
     justify-content: space-around; /* 或者 center */
-    margin-bottom: 20px;
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 10px;
+    padding-bottom: 15px; /* 增加切换按钮下方空间 */
   }
 
   .mobile-sidebar-view-toggle button {
-    padding: 8px 15px;
+    padding: 8px 10px; /* 微调按钮内边距 */
     border: 1px solid #ccc;
     background-color: #f0f0f0;
     cursor: pointer;
@@ -1271,6 +1267,7 @@ export default {
     flex-grow: 1; /* 让按钮平分空间 */
     margin: 0 5px; /* 按钮间加点间距 */
     transition: background-color 0.2s ease, color 0.2s ease;
+    text-align: center; /* 确保文字居中 */
   }
 
   .mobile-sidebar-view-toggle button.active {
@@ -1279,6 +1276,57 @@ export default {
     border-color: #007bff;
   }
 
+  /* 强制覆盖 Sidebar 组件和 ActionTypes 组件样式 */
+  .mobile-sidebar :deep(.sidebar) {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .mobile-sidebar :deep(.inventory-title) {
+    display: none !important;
+  }
+
+  .mobile-sidebar :deep(.equipment-grid),
+  .mobile-sidebar :deep(.inventory-items) {
+    width: 100% !important;
+  }
+
+  .mobile-sidebar :deep(.equipment-section),
+  .mobile-sidebar :deep(.inventory-section) {
+    width: 100% !important;
+    margin-bottom: 10px !important;
+  }
+
+  .mobile-sidebar :deep(.action-types) {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 控制 ActionTypes 在移动侧边栏中的布局 */
+  .mobile-sidebar :deep(.action-buttons) {
+    display: grid !important;
+    grid-template-columns: 1fr !important; /* 单列显示 */
+    padding: 0 !important;
+    gap: 8px !important;
+  }
+
+  .mobile-sidebar :deep(.action-button) {
+    min-height: 80px !important;
+    margin: 0 !important;
+  }
+  
   .overlay {
     position: fixed;
     top: 0;
@@ -1300,7 +1348,10 @@ export default {
   /* 调整主要组件在移动端的样式 */
   .game-header {
     padding: 5px 10px; /* 调整内边距 */
+    /* 尝试缩小字体，需要针对 GameHeader 内部元素，这里加个通用规则 */
+    font-size: 0.9em; 
   }
+  
   .item-list-container, .explore-area-container {
      margin: 10px 0; /* 调整外边距 */
   }
